@@ -1,0 +1,27 @@
+language: generic 
+
+sudo: required
+services:
+  - docker
+
+#Run tests
+before_install:
+  - docker build -t kbantom23/react-test -f ./client/Dockerfile.dev ./client
+script:
+    - docker run -e CI=true kbantomb23/react-test npm test
+
+#Builds all images
+after_success:
+  - docker build -t kbantom23/multi-client ./client
+  - docker build -t kbantom23/multi-nginx ./nginx
+  - docker build -t kbantom23/multi-server ./server
+  - docker build -t kbantom23/multi-worker ./worker
+
+#Login to docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+#Take images previously built and push to docker hub
+  - docker push kbantom23/multi-client
+  - docker push kbantom23/multi-nginx
+  - docker push kbantom23/multi-server
+  - docker push kbantom23/multi-worker
